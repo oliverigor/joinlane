@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
@@ -9,12 +10,30 @@ import {
   Button,
   ScrollView
 } from 'react-native';
-import { Query } from 'react-apollo';
+import { Query, Mutation } from 'react-apollo';
 import { gql } from 'apollo-boost';
 import { ErrorScene } from '../../components';
 
 export default class UserScene extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: '',
+      email: ''
+    };
+  }
+
+  handleInputChange = () => {
+    console.log({ email: this.state.email, name: this.state.name });
+  };
+
   render() {
+    const mutation = gql`
+      mutation updateUser($user: UserInput!) {
+        updateUser(user: $user)
+      }
+    `;
+
     const query = gql`
       query User($id: ID!) {
         user(id: $id) {
@@ -50,6 +69,12 @@ export default class UserScene extends PureComponent {
     `;
     const { navigation } = this.props;
     const id = navigation.getParam('id');
+    const { email, name } = this.state;
+    const user = {
+      email,
+      id,
+      name
+    };
 
     // todo: 5 would be cool to make the user name and email updateable and saved ot the database, so we can let our users change their info.
     return (
@@ -62,7 +87,7 @@ export default class UserScene extends PureComponent {
           if (error) {
             return <ErrorScene message={error.message} />;
           }
-
+          console.log({ alou: data });
           return (
             <View style={{ flex: 1 }}>
               <ScrollView>
@@ -90,7 +115,48 @@ export default class UserScene extends PureComponent {
                 </View>
                 <View style={{ marginTop: 20 }}>
                   <Text style={styles.text}>Name: {data.user.name}</Text>
+
+                  <View
+                    style={{
+                      backgroundColor: this.state.text,
+                      borderBottomColor: '#000000',
+                      borderBottomWidth: 1,
+                      width: 200,
+                      marginLeft: 20
+                    }}
+                  >
+                    <TextInput
+                      onChangeText={name => this.setState({ name })}
+                      value={this.state.name}
+                      placeholder="Try update your name"
+                      placeholderTextColor="#999"
+                    />
+                  </View>
+
                   <Text style={styles.text}>Email: {data.user.email}</Text>
+                  <View
+                    style={{
+                      backgroundColor: this.state.text,
+                      borderBottomColor: '#000000',
+                      borderBottomWidth: 1,
+                      width: 200,
+                      marginLeft: 20
+                    }}
+                  >
+                    <TextInput
+                      onChangeText={email => this.setState({ email })}
+                      placeholder="Try update your email"
+                      placeholderTextColor="#999"
+                      value={this.state.email}
+                      onSubmitEditing={this.handleInputChange}
+                      returnKeyType="send"
+                    />
+                  </View>
+                  <Mutation mutation={mutation} variables={{ user }}>
+                    {mutation => (
+                      <Button title="Update info" onPress={mutation} />
+                    )}
+                  </Mutation>
 
                   <Text style={styles.textEmail}>Address</Text>
                   <Text style={styles.text}>

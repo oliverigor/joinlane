@@ -32,3 +32,8 @@ type Company {
   employees: [User!]
   address: Address
 }
+
+type Employees {
+  name: String!
+  id: ID!
+}
